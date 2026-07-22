@@ -65,11 +65,13 @@ class LogProcessor(DataProcessor):
     def validate(self, data: Any) -> bool:
         if isinstance(data, dict):
             return all(isinstance(key, str)
-                       and isinstance(value, str) for key, value in data.items())
+                       and isinstance(value, str)
+                       for key, value in data.items())
         elif isinstance(data, list):
             return all(isinstance(item, dict)
                        and all(isinstance(key, str) and isinstance(value, str)
-                               for key, value in item.items()) for item in data)
+                               for key, value in item.items())
+                       for item in data)
         return False
 
     def ingest(self, data: Any) -> None:
@@ -77,10 +79,12 @@ class LogProcessor(DataProcessor):
             raise Exception("Improper log data")
         else:
             if isinstance(data, dict):
-                self._storage.append(data["log_level"] + ": " + data["log_message"])
+                self._storage.append(data["log_level"]
+                                     + ": " + data["log_message"])
             else:
                 for item in data:
-                    self._storage.append(item["log_level"] + ": " + item["log_message"])
+                    self._storage.append(item["log_level"]
+                                         + ": " + item["log_message"])
 
 
 class ExportPlugin(Protocol):
@@ -104,7 +108,8 @@ class DataStream:
                     processor.ingest(element)
                     break
             if not found:
-                print(f"DataStream error - Can't process element in stream: {element}")
+                print("DataStream error - "
+                      f"Can't process element in stream: {element}")
 
     def print_processors_stats(self) -> None:
         print("== DataStream statistics ==")
@@ -114,7 +119,8 @@ class DataStream:
             for processor in self._processors:
                 total = processor._rank + len(processor._storage)
                 remaining = len(processor._storage)
-                print(f"{type(processor).__name__}: total {total} items processed, remaining {remaining} on processor")
+                print(f"{type(processor).__name__}: total {total} "
+                      f"items processed, remaining {remaining} on processor")
 
     def output_pipeline(self, nb: int, plugin: ExportPlugin) -> None:
         for processor in self._processors:
@@ -143,7 +149,8 @@ if __name__ == "__main__":
     batch1 = [
         'Hello world',
         [3.14, -1, 2.71],
-        [{'log_level': 'WARNING', 'log_message': 'Telnet access! Use ssh instead'},
+        [{'log_level': 'WARNING',
+          'log_message': 'Telnet access! Use ssh instead'},
          {'log_level': 'INFO', 'log_message': 'User wil is connected'}],
         42,
         ['Hi', 'five']
@@ -153,7 +160,8 @@ if __name__ == "__main__":
         21,
         ['I love AI', 'LLMs are wonderful', 'Stay healthy'],
         [{'log_level': 'ERROR', 'log_message': '500 server crash'},
-         {'log_level': 'NOTICE', 'log_message': 'Certificate expires in 10 days'}],
+         {'log_level': 'NOTICE',
+          'log_message': 'Certificate expires in 10 days'}],
         [32, 42, 64, 84, 128, 168],
         'World hello'
     ]
